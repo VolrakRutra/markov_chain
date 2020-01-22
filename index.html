@@ -1,0 +1,159 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="bootstrap.css">
+  <script src="jquery-3.4.1.min.js"></script>
+  <script src="bootstrap.min.js"></script>
+
+  <script src="text.js" defer></script>
+  <script src="script.js" defer></script>
+  <title>Markov Chain</title>
+
+  <style media="screen">
+    .inline-block {
+      display: inline-block;
+    }
+
+    #text-to-parse {
+      width: 100vw;
+      height: 30vh;
+    }
+
+    #length,
+    #order {
+      width: 15%
+    }
+
+    #how-to-use {
+      font-size: 25px;
+      width: 100%;
+      heigth: 5vh;
+      margin-top: 1vh;
+    }
+
+    h1,
+    h6 {
+      display: inline-block;
+
+    }
+  </style>
+</head>
+
+<body>
+  <div class='container'>
+
+    <div class="row">
+      <div class="col">
+
+      </div>
+      <div class="col-10 container">
+        <div class='d-flex justify-content-around align-items-baseline mt-3'>
+          <h1>Markov Chain Generator</h1>
+          <h6>v.0.0.1</h6>
+        </div>
+        <!--How to use-->
+        <button id='how-to-use' type="button" class="btn btn-info" data-toggle="collapse" data-target="#demo">HOW TO USE</button>
+        <div id="demo" class="collapse">
+          <br />Put some text into the field below. For example, you can copy-paste a couple of paragraphs from a book, or a news article.
+          The results will be more interesting if more data is provided.
+          Check out <a href="http://www.gutenberg.org/wiki/Main_Page">Project Gutenberg</a> for some ideas and public domain works of literature to copy-paste from.<br>
+          <br />Enter a number into the field labeled "Order". The lower the number, the more chaotic the generated text will be,
+          the higher the number, the bigger (and therefore slower!) is the created Markov chain.
+          You can enter numbers between 1 and 10, but I don't recommend going higher than 4 or 5. <br>
+          <br />Click the "Create Chain" button. If you inputted too much text or set order to be too high, it might take a second or two to generate the chain.
+          I generated a chain from the entire "<a href="http://www.gutenberg.org/ebooks/74">The Adventures of Tom Sawyer</a>" by Mark Twain with the order of 3,
+          but the text generation was rather slow afterward.<br />
+          <br />Enter the number of characters you wish to generate into the "Length" field. Start with 1000 or 2000 (or less) to see how your computer handles this.
+          Generation will take longer on bigger chains with higher orders.<br>
+          <br>Click the "Generate Text" button and enjoy the output! Try experimenting, for example by combining lyrics from modern performers with classical poetry,
+          or technical literature with romance novels, into one chain. Get creative!<br>
+          <br> You can learn more about Markov chains in <a href="https://en.wikipedia.org/wiki/Markov_chain" target="_blank">this Wikipedia article</a>.
+
+        </div>
+        <!--Text input field-->
+        <div class="row mb-3 mt-3">
+          <textarea id='text-to-parse' name="name"></textarea>
+        </div>
+        <div class="row">
+
+        </div>
+        <div class="row">
+          <div class='col-6 d-flex justify-content-around align-items-baseline'>
+            Order: <input id='order' type="number" name="" value="1">
+            <button class='btn btn-primary' onclick="if (validateChainGeneration()){ generateFromInput();}" type="button" name="button">CREATE CHAIN</button>
+            <button class='btn btn-warning' onclick='document.getElementById("text-to-parse").value = ""; document.getElementById("order").value = ""; document.getElementById("length").value = ""'>CLEAR INPUT</button>
+
+          </div>
+          <div class="col-6 d-flex justify-content-around align-items-baseline">
+            Length: <input type='number' value='500' id='length'>
+            <button class='btn btn-success' onclick='insertParagraph()'>GENERATE TEXT</button>
+            <button class='btn btn-warning' onclick='document.getElementById("main").innerHTML = "";'>CLEAR OUTPUT</button>
+          </div>
+
+
+        </div><br>
+
+        <div id='main'></div>
+      </div>
+      <div class="col">
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+  <script>
+    let chain;
+    let unNormalizedChain;
+
+    function validateChainGeneration() {
+      let textfield = document.getElementById('text-to-parse');
+      let orderfield = document.getElementById('order');
+      if (textfield.value.length < 10) {
+        let d = document.querySelector('#main');
+        let p = document.createElement('p');
+        p.append('That text is too short, the chain will not be fun.');
+        d.prepend(p);
+        return false;
+      } else if (orderfield.value == '' || Number(orderfield.value) < 1 || Number(orderfield.value) > 10) {
+        let d = document.querySelector('#main');
+        let p = document.createElement('p');
+        p.append('Order should not be empty and should be between 1 and 10');
+        d.prepend(p);
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    function generateFromInput() {
+      unNormalizedChain = generateMarkovChain(document.getElementById('text-to-parse').value.toLowerCase(), Number(document.getElementById('order').value));
+      chain = normalizeChain(unNormalizedChain);
+      //console.log(chain)
+    }
+
+    function insertParagraph() {
+      if (!chain) {
+        let d = document.querySelector('#main');
+        let p = document.createElement('p');
+        p.append('You need to generate a Markov chain first, using the above text field.');
+        d.prepend(p);
+      } else {
+        let keyArray = Object.keys(chain);
+        let rannumb = Math.random()
+        let index = Math.floor(rannumb * keyArray.length);
+        let startingSequence = keyArray[index];
+        //console.log(`Rolled Random: ${rannumb}\nIndex: ${index},\nTotal Length: ${keyArray.length}\nStarting Sequence: ${startingSequence}\n`);
+        addParagraph(startingSequence, document.getElementById("length").value - 1, chain);
+      }
+    }
+  </script>
+</body>
+
+</html>
